@@ -22,6 +22,7 @@ class Cpu6502
         void reset();       // Resets the Program Counter.
         void singleStep();  // Executes a single instruction.
         void show() const;  // Dump the current state of the CPU.
+        void disas() const; // Disassemble the current instruction.
 
     private:
         Memory&  m_memory;  // Reference to the external memory.

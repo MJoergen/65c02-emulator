@@ -25,7 +25,7 @@ int main()
     Memory mem(initial);
     Cpu6502 cpu6502(mem);
 
-    for (int i=0; i<500; ++i)
+    for (int i=0; i<100; ++i)
     {
         cpu6502.show();
         cpu6502.singleStep();

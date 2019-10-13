@@ -155,10 +155,6 @@ static uint16_t sign_extend(uint8_t arg)
 void Cpu6502::singleStep()
 {
     uint8_t inst = m_memory.read(m_pc);
-    std::cout << "Executing opcode " << std::hex << std::setw(2) << (uint16_t) inst;
-    std::cout << " at address " << std::hex << std::setw(4) << m_pc;
-    std::cout << std::dec << std::endl;
-
     uint16_t pArg = 0;
     switch (addrModes[inst])
     {
@@ -168,6 +164,7 @@ void Cpu6502::singleStep()
         case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
     } // switch (addrModes[inst])
 
+    m_memory.trace(true);
     switch (instructions[inst])
     {
         case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
@@ -200,6 +197,7 @@ void Cpu6502::singleStep()
 
         case I_JMP: m_pc = pArg; break;
     } // switch (instructions[inst])
+    m_memory.trace(false);
 } // singleStep
 
 void Cpu6502::show() const
@@ -215,6 +213,51 @@ void Cpu6502::show() const
     if (m_flags.intmask)  std::cout << "I"; else std::cout << ".";
     if (m_flags.zero)     std::cout << "Z"; else std::cout << ".";
     if (m_flags.carry)    std::cout << "C"; else std::cout << ".";
-    std::cout << std::dec << std::endl;
+
+    std::cout << "   ";
+    disas();
 } // show
+
+// Disassemble the current instruction.
+void Cpu6502::disas() const
+{
+    uint8_t inst = m_memory.read(m_pc);
+    switch (instructions[inst])
+    {
+        case I_RES: std::cout << "???"; break;
+        case I_ORA: std::cout << "ORA"; break;
+        case I_AND: std::cout << "AND"; break;
+        case I_EOR: std::cout << "EOR"; break;
+        case I_ADC: std::cout << "ADC"; break;
+        case I_STA: std::cout << "STA"; break;
+        case I_LDA: std::cout << "LDA"; break;
+        case I_CMP: std::cout << "CMP"; break;
+        case I_SBC: std::cout << "SBC"; break;
+        case I_CLC: std::cout << "CLC"; break;
+        case I_SEC: std::cout << "SEC"; break;
+        case I_CLI: std::cout << "CLI"; break;
+        case I_SEI: std::cout << "SEI"; break;
+        case I_CLV: std::cout << "CLV"; break;
+        case I_CLD: std::cout << "CLD"; break;
+        case I_SED: std::cout << "SED"; break;
+        case I_BPL: std::cout << "BPL"; break;
+        case I_BMI: std::cout << "BMI"; break;
+        case I_BVC: std::cout << "BVC"; break;
+        case I_BVS: std::cout << "BVS"; break;
+        case I_BCC: std::cout << "BCC"; break;
+        case I_BCS: std::cout << "BCS"; break;
+        case I_BNE: std::cout << "BNE"; break;
+        case I_BEQ: std::cout << "BEQ"; break;
+        case I_JMP: std::cout << "JMP"; break;
+    }
+    switch (addrModes[inst])
+    {
+        case AM_NONE : break;
+        case AM_IMM  : std::cout << " #$" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
+        case AM_ABS  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8)); break;
+        case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << m_pc + 2 + sign_extend(m_memory.read(m_pc+1)); break;
+    } // switch (addrModes[inst])
+
+    std::cout << std::dec << std::endl;
+} // disas
 
