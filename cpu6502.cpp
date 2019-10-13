@@ -2,6 +2,86 @@
 #include <iomanip>
 #include "cpu6502.h"
 
+// List of all the possible instructions.
+typedef enum
+{
+    I_RES,  // Reserved
+    I_ORA,
+    I_AND,
+    I_EOR,
+    I_ADC,
+    I_STA,
+    I_LDA,
+    I_CMP,
+    I_SBC,
+    I_CLC,
+    I_SEC,
+    I_CLI,
+    I_SEI,
+    I_CLV,
+    I_CLD,
+    I_SED,
+    I_BPL,
+    I_BMI,
+    I_BVC,
+    I_BVS,
+    I_BCC,
+    I_BCS,
+    I_BNE,
+    I_BEQ,
+    I_JMP
+} instruction_t;
+
+// List of all the possible addressing modes.
+typedef enum
+{
+    AM_NONE,
+    AM_IMM,
+    AM_ABS,
+    AM_REL
+} addrMode_t;
+
+static const addrMode_t addrModes[256] = 
+{
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x00
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x10
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x30
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, AM_NONE, // 0x40
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x60
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x70
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x80
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x90
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xA0
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xB0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xC0
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xD0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xE0
+    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE  // 0xF0
+}; // addrModes
+
+static const instruction_t instructions[256] = 
+{
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
+    I_BPL, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x10
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
+    I_BMI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x30
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
+    I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
+    I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
+    I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_LDA, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES, // 0xA0
+    I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES, // 0xC0
+    I_BNE, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLD, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xD0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES, // 0xE0
+    I_BEQ, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES  // 0xF0
+}; // instructions
+
+
 void Cpu6502::reset()
 {
     m_pc = (m_memory.read(0xFFFD) << 8) | m_memory.read(0xFFFC);
@@ -74,198 +154,52 @@ static uint16_t sign_extend(uint8_t arg)
 
 void Cpu6502::singleStep()
 {
-    uint8_t tmp16;
     uint8_t inst = m_memory.read(m_pc);
     std::cout << "Executing opcode " << std::hex << std::setw(2) << (uint16_t) inst;
     std::cout << " at address " << std::hex << std::setw(4) << m_pc;
     std::cout << std::dec << std::endl;
 
-    switch (inst)
+    uint16_t pArg = 0;
+    switch (addrModes[inst])
     {
-        case 0x18: // CLC
-            m_flags.carry = 0;
-            m_pc += 1;
-            break;
+        case AM_NONE : m_pc += 1; break;
+        case AM_IMM  : pArg = m_pc+1; m_pc += 2; break;
+        case AM_ABS  : pArg = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8); m_pc += 3; break;
+        case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
+    } // switch (addrModes[inst])
 
-        case 0x38: // SEC
-            m_flags.carry = 1;
-            m_pc += 1;
-            break;
+    switch (instructions[inst])
+    {
+        case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
 
-        case 0x58: // CLI
-            m_flags.intmask = 0;
-            m_pc += 1;
-            break;
+        case I_ORA: m_areg = alu(0, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_AND: m_areg = alu(1, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_EOR: m_areg = alu(2, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_ADC: m_areg = alu(3, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_STA: m_memory.write(pArg, m_areg); break;
+        case I_LDA: m_areg = alu(5, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_CMP: alu(6, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_SBC: m_areg = alu(7, m_areg, m_memory.read(pArg), m_flags); break;
 
-        case 0x78: // SEI
-            m_flags.intmask = 1;
-            m_pc += 1;
-            break;
+        case I_CLC: m_flags.carry = 0; break;
+        case I_SEC: m_flags.carry = 1; break;
+        case I_CLI: m_flags.intmask = 0; break;
+        case I_SEI: m_flags.intmask = 1; break;
+        case I_CLV: m_flags.overflow = 0; break;
+        case I_CLD: m_flags.decimal = 0; break;
+        case I_SED: m_flags.decimal = 1; break;
 
-        case 0xB8: // CLV
-            m_flags.overflow = 0;
-            m_pc += 1;
-            break;
+        case I_BPL: if (m_flags.sign == 0) m_pc = pArg; break;
+        case I_BMI: if (m_flags.sign == 1) m_pc = pArg; break;
+        case I_BVC: if (m_flags.overflow == 0) m_pc = pArg; break;
+        case I_BVS: if (m_flags.overflow == 1) m_pc = pArg; break;
+        case I_BCC: if (m_flags.carry == 0) m_pc = pArg; break;
+        case I_BCS: if (m_flags.carry == 1) m_pc = pArg; break;
+        case I_BNE: if (m_flags.zero == 0) m_pc = pArg; break;
+        case I_BEQ: if (m_flags.zero == 1) m_pc = pArg; break;
 
-        case 0xD8: // CLD
-            m_flags.decimal = 0;
-            m_pc += 1;
-            break;
-
-        case 0xF8: // SED
-            m_flags.decimal = 1;
-            m_pc += 1;
-            break;
-
-        case 0x10: // BPL
-            m_pc += 2;
-            if (m_flags.sign == 0) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0x30: // BMI
-            m_pc += 2;
-            if (m_flags.sign == 1) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0x50: // BVC
-            m_pc += 2;
-            if (m_flags.overflow == 0) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0x70: // BVS
-            m_pc += 2;
-            if (m_flags.overflow == 1) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0x90: // BCC
-            m_pc += 2;
-            if (m_flags.carry == 0) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0xB0: // BCS
-            m_pc += 2;
-            if (m_flags.carry == 1) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0xD0: // BNE
-            m_pc += 2;
-            if (m_flags.zero == 0) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0xF0: // BEQ
-            m_pc += 2;
-            if (m_flags.zero == 1) {
-                m_pc += sign_extend(m_memory.read(m_pc-1));
-            }
-            break;
-
-        case 0x09: // ORA #
-            m_areg = alu(0, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0x29: // AND #
-            m_areg = alu(1, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0x49: // EOR #
-            m_areg = alu(2, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0x69: // ADC #
-            m_areg = alu(3, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0x89: // Reserved
-            break;
-
-        case 0xA9: // LDA #
-            m_areg = alu(5, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0xC9: // CMP #
-            alu(6, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0xE9: // SBC #
-            m_areg = alu(7, m_areg, m_memory.read(m_pc+1), m_flags);
-            m_pc += 2;
-            break;
-
-        case 0x0D: // ORA $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(0, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0x2D: // AND $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(1, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0x4D: // EOR $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(2, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0x6D: // ADC $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(3, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0x8D: // STA $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_memory.write(tmp16, m_areg);
-            m_pc += 3;
-            break;
-
-        case 0xAD: // LDA $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(5, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0xCD: // CMP $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            alu(6, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0xED: // SBC #
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_areg = alu(7, m_areg, m_memory.read(tmp16), m_flags);
-            m_pc += 3;
-            break;
-
-        case 0x4C: // JMP $
-            tmp16 = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8);
-            m_pc = tmp16;
-            break;
-            
-        default: std::cerr << "Unimplemented instruction" << std::endl; exit(-1);
-    }
+        case I_JMP: m_pc = pArg; break;
+    } // switch (instructions[inst])
 } // singleStep
 
 void Cpu6502::show() const
