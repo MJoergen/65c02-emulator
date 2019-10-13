@@ -21,7 +21,15 @@ include $(depends)
 %.o :
 	$(CC) $(DEFINES) $(INCLUDE_DIRS) -c $< -o $@
 
+rom.o: rom.s
+	ca65 $<
+rom.bin: rom.o
+	ld65 -C ld.cfg $<
+
+
 clean: Makefile
 	-rm $(objects)
 	-rm $(depends)
+	-rm rom.o
+	-rm rom.bin
 

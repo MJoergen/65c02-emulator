@@ -9,6 +9,7 @@ class Memory
 {
     public:
         Memory(std::vector<uint8_t> init) : m_trace(false) {m_data.reserve(65536);
+            std::cout << "Initializing memory with " << init.size() << " bytes" << std::endl;
             std::copy(init.begin(), init.end(), &m_data[65536-init.size()]);
         }
 

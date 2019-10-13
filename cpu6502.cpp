@@ -38,46 +38,47 @@ typedef enum
     AM_NONE,
     AM_IMM,
     AM_ABS,
+    AM_ZP,
     AM_REL
 } addrMode_t;
 
 static const addrMode_t addrModes[256] = 
 {
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x00
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x00
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x10
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x30
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, AM_NONE, // 0x40
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, AM_NONE, // 0x40
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x60
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x60
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x70
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x80
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x80
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x90
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xA0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xA0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xB0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xC0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xC0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xD0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xE0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xE0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE  // 0xF0
 }; // addrModes
 
 static const instruction_t instructions[256] = 
 {
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES,  I_RES, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
     I_BPL, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x10
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES,  I_RES, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
     I_BMI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x30
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_RES, I_RES,  I_RES, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
     I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_RES, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
     I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
     I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_LDA, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES, // 0xA0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES,  I_RES, I_LDA, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES, // 0xA0
     I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES, // 0xC0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES, // 0xC0
     I_BNE, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLD, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xD0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES, // 0xE0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES, // 0xE0
     I_BEQ, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES  // 0xF0
 }; // instructions
 
@@ -89,7 +90,7 @@ void Cpu6502::reset()
     std::cout << std::dec << std::endl;
 } // reset
 
-static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, t_flags& flags)
+static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags& flags)
 {
     uint16_t tmp16;
     uint8_t  tmp8 = arg1;
@@ -127,7 +128,7 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, t_flags& flags)
             flags.zero = (tmp8 == 0);
             break;
         case 6 : // CMP
-            tmp16 = arg1 + ~arg2 + flags.carry;
+            tmp16 = arg1 + ((~arg2) & 0xFF) + 1;
             // Set S, Z, and C
             flags.carry = (tmp16 >> 8);
             tmp8 = tmp16 & 0xFF;
@@ -161,6 +162,7 @@ void Cpu6502::singleStep()
         case AM_NONE : m_pc += 1; break;
         case AM_IMM  : pArg = m_pc+1; m_pc += 2; break;
         case AM_ABS  : pArg = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8); m_pc += 3; break;
+        case AM_ZP   : pArg = m_memory.read(m_pc+1); m_pc += 2; break;
         case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
     } // switch (addrModes[inst])
 
@@ -255,6 +257,7 @@ void Cpu6502::disas() const
         case AM_NONE : break;
         case AM_IMM  : std::cout << " #$" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
         case AM_ABS  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8)); break;
+        case AM_ZP   : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (uint16_t) m_memory.read(m_pc+1); break;
         case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << m_pc + 2 + sign_extend(m_memory.read(m_pc+1)); break;
     } // switch (addrModes[inst])
 
