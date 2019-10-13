@@ -29,7 +29,14 @@ typedef enum
     I_BCS,
     I_BNE,
     I_BEQ,
-    I_JMP
+    I_JMP,
+    I_PHP,
+    I_JSR,
+    I_PLP,
+    I_PHA,
+    I_RTS,
+    I_PLA
+
 } instruction_t;
 
 // List of all the possible addressing modes.
@@ -46,7 +53,7 @@ static const addrMode_t addrModes[256] =
 {
     AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x00
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x10
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
+    AM_ABS,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x30
     AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, AM_NONE, // 0x40
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
@@ -64,13 +71,13 @@ static const addrMode_t addrModes[256] =
 
 static const instruction_t instructions[256] = 
 {
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES,  I_RES, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES,  I_PHP, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
     I_BPL, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x10
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES,  I_RES, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
+    I_JSR, I_RES, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES,  I_PLP, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
     I_BMI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x30
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_RES, I_RES,  I_RES, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_RES, I_RES,  I_PHA, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
     I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_RES, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
+    I_RTS, I_RES, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
     I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
     I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
     I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
@@ -88,6 +95,7 @@ void Cpu6502::reset()
     m_pc = (m_memory.read(0xFFFD) << 8) | m_memory.read(0xFFFC);
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
     std::cout << std::dec << std::endl;
+    m_sp = 0xFF;
 } // reset
 
 static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags& flags)
@@ -197,6 +205,13 @@ void Cpu6502::singleStep()
         case I_BNE: if (m_flags.zero == 0) m_pc = pArg; break;
         case I_BEQ: if (m_flags.zero == 1) m_pc = pArg; break;
 
+        case I_PHP: m_memory.write(0x0100 | m_sp, *(uint8_t*) &m_flags); m_sp -= 1; break;
+        case I_JSR: m_memory.write(0x0100 | m_sp, (m_pc-1) >> 8); m_memory.write(0x0100 | (m_sp-1), (m_pc-1) & 0xFF); m_sp -= 2; m_pc = pArg; break;
+        case I_PLP: m_sp += 1; *(uint8_t*) &m_flags = m_memory.read(0x0100 | m_sp); break;
+        case I_PHA: m_memory.write(0x0100 | m_sp, m_areg); m_sp -= 1; break;
+        case I_RTS: m_sp += 2; m_pc = ((m_memory.read(0x0100 | m_sp) << 8) | m_memory.read(0x0100 | (m_sp - 1))) + 1; break;
+        case I_PLA: m_sp += 1; m_areg = m_memory.read(0x0100 | m_sp); break;
+
         case I_JMP: m_pc = pArg; break;
     } // switch (instructions[inst])
     m_memory.trace(false);
@@ -251,13 +266,19 @@ void Cpu6502::disas() const
         case I_BNE: std::cout << "BNE"; break;
         case I_BEQ: std::cout << "BEQ"; break;
         case I_JMP: std::cout << "JMP"; break;
+        case I_PHP: std::cout << "PHP"; break;
+        case I_JSR: std::cout << "JSR"; break;
+        case I_PLP: std::cout << "PLP"; break;
+        case I_PHA: std::cout << "PHA"; break;
+        case I_RTS: std::cout << "RTS"; break;
+        case I_PLA: std::cout << "PLA"; break;
     }
     switch (addrModes[inst])
     {
         case AM_NONE : break;
         case AM_IMM  : std::cout << " #$" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
         case AM_ABS  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8)); break;
-        case AM_ZP   : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (uint16_t) m_memory.read(m_pc+1); break;
+        case AM_ZP   : std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
         case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << m_pc + 2 + sign_extend(m_memory.read(m_pc+1)); break;
     } // switch (addrModes[inst])
 

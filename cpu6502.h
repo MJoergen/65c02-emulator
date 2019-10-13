@@ -31,6 +31,7 @@ class Cpu6502
         uint8_t  m_areg;
         uint8_t  m_xreg;
         uint8_t  m_yreg;
+        uint8_t  m_sp;
         t_flags  m_flags;
 }; // end of class Cpu6502
 
