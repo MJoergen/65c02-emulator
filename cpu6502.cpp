@@ -1,8 +1,8 @@
 #include <iostream>
 #include <iomanip>
-#include "cpu.h"
+#include "cpu6502.h"
 
-void Cpu::reset()
+void Cpu6502::reset()
 {
     m_pc = (m_memory.read(0xFFFD) << 8) | m_memory.read(0xFFFC);
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
@@ -72,7 +72,7 @@ static uint16_t sign_extend(uint8_t arg)
     return (arg < 0x80) ? arg : 0xFF00 | arg;
 }
 
-void Cpu::singleStep()
+void Cpu6502::singleStep()
 {
     uint8_t tmp16;
     uint8_t inst = m_memory.read(m_pc);
@@ -268,7 +268,7 @@ void Cpu::singleStep()
     }
 } // singleStep
 
-void Cpu::show() const
+void Cpu6502::show() const
 {
     std::cout << "PC: " << std::hex << std::setw(4) << m_pc;
     std::cout << "  AREG : " << std::hex << std::setw(2) << (uint16_t) m_areg;

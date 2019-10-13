@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "cpu.h"
+#include "cpu6502.h"
 
 int main()
 {
@@ -23,13 +23,13 @@ int main()
     initial.resize(65536, 0);
 
     Memory mem(initial);
-    Cpu cpu(mem);
+    Cpu6502 cpu6502(mem);
 
     for (int i=0; i<500; ++i)
     {
-        cpu.show();
-        cpu.singleStep();
+        cpu6502.show();
+        cpu6502.singleStep();
     }
-    cpu.show();
+    cpu6502.show();
 } // main
 

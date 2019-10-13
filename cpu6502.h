@@ -14,10 +14,10 @@ typedef struct {
     uint8_t carry:1;      // C
 } t_flags;        
 
-class Cpu
+class Cpu6502
 {
     public:
-        Cpu(Memory& memory) : m_memory(memory) {reset();}
+        Cpu6502(Memory& memory) : m_memory(memory) {reset();}
 
         void reset();       // Resets the Program Counter.
         void singleStep();  // Executes a single instruction.
@@ -31,5 +31,5 @@ class Cpu
         uint8_t  m_xreg;
         uint8_t  m_yreg;
         t_flags  m_flags;
-}; // end of class Cpu
+}; // end of class Cpu6502
 

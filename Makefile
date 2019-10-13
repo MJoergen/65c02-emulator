@@ -1,4 +1,4 @@
-sources  = cpu.cpp
+sources  = cpu6502.cpp
 sources += main.cpp
 objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
@@ -7,7 +7,7 @@ DEFINES  = -Wall -O3
 #DEFINES  = -Wall -O3 -g -pg
 #DEFINES += -DNDEBUG
 
-cpu: $(objects) Makefile
+cpu6502: $(objects) Makefile
 	$(CC) -o $@ $(DEFINES) $(objects) -lstdc++
 	mv $@ $(HOME)/bin
 
