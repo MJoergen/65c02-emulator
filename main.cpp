@@ -11,12 +11,13 @@ int main()
     Memory mem(initial);
     Cpu6502 cpu6502(mem);
 
-    for (int i=0; i<10000; ++i)
+    // Go into an infinite loop.
+    // The program will terminate, when a JMP instruction jumps to itself.
+    while (true)
     {
         cpu6502.show();
         cpu6502.singleStep();
     }
-    cpu6502.show();
 } // main
 
 

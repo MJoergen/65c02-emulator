@@ -14,14 +14,14 @@ class Cpu6502
 
         // The Flags register is implemented as a bitfield.
         typedef struct {
-            uint8_t sign:1;       // S
-            uint8_t overflow:1;   // V
-            uint8_t reserved:1;   // R
-            uint8_t brk:1;        // B
-            uint8_t decimal:1;    // D
-            uint8_t intmask:1;    // I
-            uint8_t zero:1;       // Z
             uint8_t carry:1;      // C
+            uint8_t zero:1;       // Z
+            uint8_t intmask:1;    // I
+            uint8_t decimal:1;    // D
+            uint8_t brk:1;        // B
+            uint8_t reserved:1;   // R
+            uint8_t overflow:1;   // V
+            uint8_t sign:1;       // S
         } t_flags;        
 
     private:
