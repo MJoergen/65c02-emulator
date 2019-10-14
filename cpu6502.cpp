@@ -65,11 +65,20 @@ typedef enum
 // List of all the possible addressing modes.
 typedef enum
 {
-    AM_NONE,
-    AM_IMM,
-    AM_ABS,
-    AM_ZP,
-    AM_REL
+    AM_IMM,     // Immediate
+    AM_ABS,     // Absolute
+    AM_ZP,      // Zero-Page
+    AM_NONE,    // None (i.e. implied)
+    AM_ACC,     // Accumulator
+    AM_ZPX,     // Zero-Page indexed with X
+    AM_ZPY,     // Zero-Page indexed with Y
+    AM_ABSX,    // Absolute indexed with X
+    AM_ABSY,    // Absolute indexed with Y
+    AM_IND,     // Indirect
+    AM_INDX,    // Pre-indexed indirect
+    AM_INDY,    // Post-indexed indirect
+    AM_REL,     // Relative
+    AM_RES,
 } addrMode_t;
 
 typedef enum
@@ -92,49 +101,49 @@ typedef enum
 
 
 static const addrMode_t addrModes[256] = 
-{
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0x00
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x10
-    AM_ABS,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x20
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x30
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x40
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0x60
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x70
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x80
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x90
-    AM_IMM,  AM_NONE, AM_IMM,  AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xA0
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xB0
-    AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xC0
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xD0
-    AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xE0
-    AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE  // 0xF0
+{//   0x00     0x01     0x02     0x03     0x04     0x05     0x06     0x07      0x08     0x09     0x0A     0x0B     0x0C     0x0D     0x0E     0x0F
+    AM_RES,  AM_INDX, AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_ACC,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_RES,  // 0x00
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_ZPX,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x10
+    AM_ABS,  AM_INDX, AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0x20
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x30
+    AM_RES,  AM_INDX, AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0x40
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x50
+    AM_NONE, AM_INDX, AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_RES,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_RES,  // 0x60
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x70
+    AM_RES,  AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_RES,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0x80
+    AM_REL,  AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_ZPY,  AM_RES,   AM_NONE, AM_RES,  AM_NONE, AM_RES,  AM_RES,  AM_RES,  AM_RES,  AM_RES,  // 0x90
+    AM_IMM,  AM_INDX, AM_IMM,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0xA0
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_ZPX,  AM_ZPX,  AM_ZPY,  AM_RES,   AM_NONE, AM_ABSY, AM_NONE, AM_RES,  AM_ABSX, AM_ABSX, AM_ABSY, AM_RES,  // 0xB0
+    AM_IMM,  AM_INDX, AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0xC0
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_ZPX,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0xD0
+    AM_IMM,  AM_INDX, AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0xE0
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_NONE  // 0xF0
 }; // addrModes
 
 static const instruction_t instructions[256] = 
-{
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_ASL, I_RES,  I_PHP, I_ORA, I_ASLA,I_RES, I_RES, I_ORA, I_ASL, I_RES, // 0x00
-    I_BPL, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x10
-    I_JSR, I_RES, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES,  I_PLP, I_AND, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES, // 0x20
-    I_BMI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x30
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_LSR, I_RES,  I_PHA, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_LSR, I_RES, // 0x40
-    I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
-    I_RTS, I_RES, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x60
-    I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
+{//  0x00   0x01   0x02   0x03   0x04   0x05   0x06   0x07    0x08   0x09   0x0A   0x0B   0x0C   0x0D   0x0E   0x0F
+    I_RES, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_ASL, I_RES,  I_PHP, I_ORA, I_ASLA,I_RES, I_RES, I_ORA, I_ASL, I_RES, // 0x00
+    I_BPL, I_ORA, I_RES, I_RES, I_RES, I_RES, I_ASL, I_RES,  I_CLC, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_ASL, I_RES, // 0x10
+    I_JSR, I_AND, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES,  I_PLP, I_AND, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES, // 0x20
+    I_BMI, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES,  I_SEC, I_AND, I_RES, I_RES, I_RES, I_AND, I_ROL, I_RES, // 0x30
+    I_RES, I_EOR, I_RES, I_RES, I_RES, I_EOR, I_LSR, I_RES,  I_PHA, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_LSR, I_RES, // 0x40
+    I_BVC, I_EOR, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_EOR, I_RES, I_RES, I_RES, I_EOR, I_LSR, I_RES, // 0x50
+    I_RTS, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x60
+    I_BVS, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_SEI, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x70
     I_RES, I_RES, I_RES, I_RES, I_STY, I_STA, I_STX, I_RES,  I_DEY, I_RES, I_TXA, I_RES, I_STY, I_STA, I_STX, I_RES, // 0x80
-    I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_TYA, I_RES, I_TXS, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
-    I_LDY, I_RES, I_LDX, I_RES, I_LDY, I_LDA, I_LDX, I_RES,  I_TAY, I_LDA, I_TAX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xA0
-    I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_TSX, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
-    I_CPY, I_RES, I_RES, I_RES, I_CPY, I_CMP, I_DEC, I_RES,  I_INY, I_CMP, I_DEX, I_RES, I_CPY, I_CMP, I_DEC, I_RES, // 0xC0
-    I_BNE, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLD, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xD0
-    I_CPX, I_RES, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES,  I_INX, I_SBC, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES, // 0xE0
-    I_BEQ, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES  // 0xF0
+    I_BCC, I_RES, I_RES, I_RES, I_STY, I_RES, I_STX, I_RES,  I_TYA, I_RES, I_TXS, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
+    I_LDY, I_LDA, I_LDX, I_RES, I_LDY, I_LDA, I_LDX, I_RES,  I_TAY, I_LDA, I_TAX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xA0
+    I_BCS, I_LDA, I_RES, I_RES, I_LDY, I_RES, I_LDX, I_RES,  I_CLV, I_LDA, I_TSX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xB0
+    I_CPY, I_CMP, I_RES, I_RES, I_CPY, I_CMP, I_DEC, I_RES,  I_INY, I_CMP, I_DEX, I_RES, I_CPY, I_CMP, I_DEC, I_RES, // 0xC0
+    I_BNE, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES,  I_CLD, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES, // 0xD0
+    I_CPX, I_SBC, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES,  I_INX, I_SBC, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES, // 0xE0
+    I_BEQ, I_SBC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_INC, I_RES  // 0xF0
 }; // instructions
 
 
 void Cpu6502::reset()
 {
-    m_pc = (m_memory.read(0xFFFD) << 8) | m_memory.read(0xFFFC);
+    m_pc = read16(0xFFFC);
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
     std::cout << std::dec << std::endl;
     m_sp = 0xFF;
@@ -258,11 +267,20 @@ void Cpu6502::singleStep()
     uint16_t pArg = 0;
     switch (addrModes[inst])
     {
-        case AM_NONE : m_pc += 1; break;
         case AM_IMM  : pArg = m_pc+1; m_pc += 2; break;
-        case AM_ABS  : pArg = m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8); m_pc += 3; break;
+        case AM_ABS  : pArg = read16(m_pc+1); m_pc += 3; break;
         case AM_ZP   : pArg = m_memory.read(m_pc+1); m_pc += 2; break;
+        case AM_NONE : m_pc += 1; break;
+        case AM_ACC  : m_pc += 1; break;
+        case AM_ZPX  : pArg = m_memory.read(m_pc+1) + m_xreg; m_pc += 2; break;
+        case AM_ZPY  : pArg = m_memory.read(m_pc+1) + m_yreg; m_pc += 2; break;
+        case AM_ABSX : pArg = read16(m_pc+1) + m_xreg; m_pc += 3; break;
+        case AM_ABSY : pArg = read16(m_pc+1) + m_yreg; m_pc += 3; break;
+        case AM_IND  :
+        case AM_INDX :
+        case AM_INDY :
         case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
+        case AM_RES  : std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
     } // switch (addrModes[inst])
 
     m_memory.trace(true);
@@ -300,7 +318,7 @@ void Cpu6502::singleStep()
         case I_JSR: m_memory.write(0x0100 | m_sp, (m_pc-1) >> 8); m_memory.write(0x0100 | (m_sp-1), (m_pc-1) & 0xFF); m_sp -= 2; m_pc = pArg; break;
         case I_PLP: m_sp += 1; *(uint8_t*) &m_flags = m_memory.read(0x0100 | m_sp); break;
         case I_PHA: m_memory.write(0x0100 | m_sp, m_areg); m_sp -= 1; break;
-        case I_RTS: m_sp += 2; m_pc = ((m_memory.read(0x0100 | m_sp) << 8) | m_memory.read(0x0100 | (m_sp - 1))) + 1; break;
+        case I_RTS: m_sp += 2; m_pc = read16(0x0100 | (m_sp-1)) + 1; break; 
         case I_PLA: m_sp += 1; m_areg = m_memory.read(0x0100 | m_sp); break;
 
         case I_ASLA: m_areg = alu(ALU_ASL, 0, m_areg, m_flags); break;
@@ -417,11 +435,20 @@ void Cpu6502::disas() const
     }
     switch (addrModes[inst])
     {
-        case AM_NONE : break;
         case AM_IMM  : std::cout << " #$" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
-        case AM_ABS  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << (m_memory.read(m_pc+1) | (m_memory.read(m_pc+2) << 8)); break;
+        case AM_ABS  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1); break;
         case AM_ZP   : std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1); break;
-        case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << m_pc + 2 + sign_extend(m_memory.read(m_pc+1)); break;
+        case AM_NONE : break;
+        case AM_ACC  : std::cout << " A"; break;
+        case AM_ZPX  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ",X"; break;
+        case AM_ZPY  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ",Y"; break;
+        case AM_ABSX : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ",X"; break;
+        case AM_ABSY : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ",Y"; break;
+        case AM_IND  :
+        case AM_INDX :
+        case AM_INDY :
+        case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << ((m_pc + 2 + sign_extend(m_memory.read(m_pc+1))) & 0xFFFF); break;
+        case AM_RES  : break;
     } // switch (addrModes[inst])
 
     std::cout << std::dec << std::endl;

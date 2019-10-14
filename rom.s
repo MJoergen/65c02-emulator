@@ -356,9 +356,13 @@ noError15:
    CMP #$87
    BNE error15
    INX
+   CPX #$87
+   BEQ error15
    CPX #$88
    BNE error15
    DEX
+   CPX #$88
+   BEQ error15
    CPX #$87
    BNE error15
 
@@ -415,9 +419,13 @@ error16:
    JMP error16
 noError16:
    INY
+   CPY #$23
+   BEQ error16
    CPY #$24
    BNE error16
    DEY
+   CPY #$24
+   BEQ error16
    CPY #$23
    BNE error16
 
@@ -446,6 +454,81 @@ noError16:
    TYA
    CMP #$43
    BNE error16
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 17 : Test a,X and a,Y addressing modes
+   LDA #$11
+   STA $0320
+   LDX #$10
+   LDA #$DD
+   LDA $0310,X
+   BNE noError17
+error17:
+   LDA #$17
+   JMP error17
+noError17:
+   BMI error17
+   CMP #$11
+   BNE error17
+
+   ASL $0310,X
+   LDA $0310,X
+   CMP #$22
+   BNE error17
+
+   LDA #$DD
+   LDX #$30
+   LDA $02F0,X
+   CMP #$22
+   BNE error17
+
+   LDA #$DD
+   LDY #$10
+   LDA $0310,Y
+   CMP #$22
+   BNE error17
+
+   LDA #$DD
+   LDY #$30
+   LDA $02F0,Y
+   CMP #$22
+   BNE error17
+
+   LDX $02F0,Y ; $0320
+   CPX #$22
+   BNE error17
+   LDX #$10
+   LDY $0310,X ; $0320
+   CPY #$22
+   BNE error17
+
+   LDX #$40
+   LDY #$50
+   STX $20,Y   ; $70
+   LDA $70
+   CMP #$40
+   BNE error17
+
+   STY $20,X   ; $60
+   LDA $60
+   CMP #$50
+   BNE error17
+
+   LDA #$33
+   STA $70
+   LDA #$44
+   LDY $30,X   ; $70
+   CPY #$33
+   BNE error17
+
+   LDY #$20
+   LDA #$33
+   STA $50
+   LDA #$44
+   LDX $30,Y   ; $50
+   CPX #$33
+   BNE error17
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests were a success
