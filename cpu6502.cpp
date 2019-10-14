@@ -43,7 +43,23 @@ typedef enum
     I_ROR,
     I_DEC, 
     I_INC,
-    I_BIT
+    I_BIT,
+    I_STX,
+    I_LDX,
+    I_CPX,
+    I_INX,
+    I_DEX,
+    I_TAX,
+    I_TXA,
+    I_TSX,
+    I_TXS,
+    I_STY,
+    I_LDY,
+    I_CPY,
+    I_INY,
+    I_DEY,
+    I_TAY,
+    I_TYA
 } instruction_t;
 
 // List of all the possible addressing modes.
@@ -85,13 +101,13 @@ static const addrMode_t addrModes[256] =
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
     AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0x60
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x70
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x80
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x80
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x90
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xA0
+    AM_IMM,  AM_NONE, AM_IMM,  AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xA0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xB0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0xC0
+    AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xC0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xD0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0xE0
+    AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0xE0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE  // 0xF0
 }; // addrModes
 
@@ -105,13 +121,13 @@ static const instruction_t instructions[256] =
     I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
     I_RTS, I_RES, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x60
     I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
-    I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES,  I_RES, I_LDA, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES, // 0xA0
-    I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES, // 0xC0
+    I_RES, I_RES, I_RES, I_RES, I_STY, I_STA, I_STX, I_RES,  I_DEY, I_RES, I_TXA, I_RES, I_STY, I_STA, I_STX, I_RES, // 0x80
+    I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_TYA, I_RES, I_TXS, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
+    I_LDY, I_RES, I_LDX, I_RES, I_LDY, I_LDA, I_LDX, I_RES,  I_TAY, I_LDA, I_TAX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xA0
+    I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_TSX, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
+    I_CPY, I_RES, I_RES, I_RES, I_CPY, I_CMP, I_DEC, I_RES,  I_INY, I_CMP, I_DEX, I_RES, I_CPY, I_CMP, I_DEC, I_RES, // 0xC0
     I_BNE, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLD, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xD0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_SBC, I_INC, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_INC, I_RES, // 0xE0
+    I_CPX, I_RES, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES,  I_INX, I_SBC, I_RES, I_RES, I_CPX, I_SBC, I_INC, I_RES, // 0xE0
     I_BEQ, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES  // 0xF0
 }; // instructions
 
@@ -296,6 +312,24 @@ void Cpu6502::singleStep()
         case I_INC: m_memory.write(pArg, alu(ALU_INC, m_areg, m_memory.read(pArg), m_flags)); break;
         case I_BIT: alu(ALU_BIT, m_areg, m_memory.read(pArg), m_flags); break;
 
+        case I_STX: m_memory.write(pArg, m_xreg); break;
+        case I_LDX: m_xreg = alu(ALU_LDA, 0, m_memory.read(pArg), m_flags); break;
+        case I_CPX: alu(ALU_CMP, m_xreg, m_memory.read(pArg), m_flags); break;
+        case I_INX: m_xreg += 1; break;
+        case I_DEX: m_xreg -= 1; break;
+        case I_TAX: m_xreg = m_areg; break;
+        case I_TXA: m_areg = m_xreg; break;
+        case I_TSX: m_xreg = m_sp; break;
+        case I_TXS: m_sp = m_xreg; break;
+
+        case I_STY: m_memory.write(pArg, m_yreg); break;
+        case I_LDY: m_yreg = alu(ALU_LDA, 0, m_memory.read(pArg), m_flags); break;
+        case I_CPY: alu(ALU_CMP, m_yreg, m_memory.read(pArg), m_flags); break;
+        case I_INY: m_yreg += 1; break;
+        case I_DEY: m_yreg -= 1; break;
+        case I_TAY: m_yreg = m_areg; break;
+        case I_TYA: m_areg = m_yreg; break;
+
         case I_JMP: m_pc = pArg; break;
     } // switch (instructions[inst])
     m_memory.trace(false);
@@ -364,6 +398,22 @@ void Cpu6502::disas() const
         case I_DEC: std::cout << "DEC"; break;
         case I_INC: std::cout << "INC"; break;
         case I_BIT: std::cout << "BIT"; break;
+        case I_STX: std::cout << "STX"; break;
+        case I_LDX: std::cout << "LDX"; break;
+        case I_CPX: std::cout << "CPX"; break;
+        case I_INX: std::cout << "INX"; break;
+        case I_DEX: std::cout << "DEX"; break;
+        case I_TAX: std::cout << "TAX"; break;
+        case I_TXA: std::cout << "TXA"; break;
+        case I_TSX: std::cout << "TSX"; break;
+        case I_TXS: std::cout << "TXS"; break;
+        case I_STY: std::cout << "STY"; break;
+        case I_LDY: std::cout << "LDY"; break;
+        case I_CPY: std::cout << "CPY"; break;
+        case I_INY: std::cout << "INY"; break;
+        case I_DEY: std::cout << "DEY"; break;
+        case I_TAY: std::cout << "TAY"; break;
+        case I_TYA: std::cout << "TYA"; break;
     }
     switch (addrModes[inst])
     {
