@@ -110,8 +110,8 @@ static const addrMode_t addrModes[256] =
     AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x50
     AM_NONE, AM_INDX, AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_RES,  AM_RES,  AM_RES,  AM_ABS,  AM_ABS,  AM_RES,  // 0x60
     AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_RES,   AM_NONE, AM_ABSY, AM_RES,  AM_RES,  AM_RES,  AM_ABSX, AM_ABSX, AM_RES,  // 0x70
-    AM_RES,  AM_RES,  AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_RES,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0x80
-    AM_REL,  AM_RES,  AM_RES,  AM_RES,  AM_ZPX,  AM_RES,  AM_ZPY,  AM_RES,   AM_NONE, AM_RES,  AM_NONE, AM_RES,  AM_RES,  AM_RES,  AM_RES,  AM_RES,  // 0x90
+    AM_RES,  AM_INDX, AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_RES,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0x80
+    AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_ZPX,  AM_ZPX,  AM_ZPY,  AM_RES,   AM_NONE, AM_ABSY, AM_NONE, AM_RES,  AM_RES,  AM_ABSX, AM_RES,  AM_RES,  // 0x90
     AM_IMM,  AM_INDX, AM_IMM,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0xA0
     AM_REL,  AM_INDY, AM_RES,  AM_RES,  AM_ZPX,  AM_ZPX,  AM_ZPY,  AM_RES,   AM_NONE, AM_ABSY, AM_NONE, AM_RES,  AM_ABSX, AM_ABSX, AM_ABSY, AM_RES,  // 0xB0
     AM_IMM,  AM_INDX, AM_RES,  AM_RES,  AM_ZP,   AM_ZP,   AM_ZP,   AM_RES,   AM_NONE, AM_IMM,  AM_NONE, AM_RES,  AM_ABS,  AM_ABS,  AM_ABS,  AM_RES,  // 0xC0
@@ -130,8 +130,8 @@ static const instruction_t instructions[256] =
     I_BVC, I_EOR, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_EOR, I_RES, I_RES, I_RES, I_EOR, I_LSR, I_RES, // 0x50
     I_RTS, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x60
     I_BVS, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_SEI, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x70
-    I_RES, I_RES, I_RES, I_RES, I_STY, I_STA, I_STX, I_RES,  I_DEY, I_RES, I_TXA, I_RES, I_STY, I_STA, I_STX, I_RES, // 0x80
-    I_BCC, I_RES, I_RES, I_RES, I_STY, I_RES, I_STX, I_RES,  I_TYA, I_RES, I_TXS, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
+    I_RES, I_STA, I_RES, I_RES, I_STY, I_STA, I_STX, I_RES,  I_DEY, I_RES, I_TXA, I_RES, I_STY, I_STA, I_STX, I_RES, // 0x80
+    I_BCC, I_STA, I_RES, I_RES, I_STY, I_STA, I_STX, I_RES,  I_TYA, I_STA, I_TXS, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x90
     I_LDY, I_LDA, I_LDX, I_RES, I_LDY, I_LDA, I_LDX, I_RES,  I_TAY, I_LDA, I_TAX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xA0
     I_BCS, I_LDA, I_RES, I_RES, I_LDY, I_RES, I_LDX, I_RES,  I_CLV, I_LDA, I_TSX, I_RES, I_LDY, I_LDA, I_LDX, I_RES, // 0xB0
     I_CPY, I_CMP, I_RES, I_RES, I_CPY, I_CMP, I_DEC, I_RES,  I_INY, I_CMP, I_DEX, I_RES, I_CPY, I_CMP, I_DEC, I_RES, // 0xC0
@@ -276,9 +276,9 @@ void Cpu6502::singleStep()
         case AM_ZPY  : pArg = m_memory.read(m_pc+1) + m_yreg; m_pc += 2; break;
         case AM_ABSX : pArg = read16(m_pc+1) + m_xreg; m_pc += 3; break;
         case AM_ABSY : pArg = read16(m_pc+1) + m_yreg; m_pc += 3; break;
-        case AM_IND  :
-        case AM_INDX :
-        case AM_INDY :
+        case AM_IND  : pArg = read16(read16(m_pc+1)); m_pc += 3; break;
+        case AM_INDX : pArg = read16(m_memory.read(m_pc+1) + m_xreg); m_pc += 2; break;
+        case AM_INDY : pArg = read16(m_memory.read(m_pc+1)) + m_yreg; m_pc += 2; break;
         case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
         case AM_RES  : std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
     } // switch (addrModes[inst])
@@ -444,9 +444,9 @@ void Cpu6502::disas() const
         case AM_ZPY  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ",Y"; break;
         case AM_ABSX : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ",X"; break;
         case AM_ABSY : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ",Y"; break;
-        case AM_IND  :
-        case AM_INDX :
-        case AM_INDY :
+        case AM_IND  : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ")"; break;
+        case AM_INDX : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ",X)"; break;
+        case AM_INDY : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << "),Y"; break;
         case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << ((m_pc + 2 + sign_extend(m_memory.read(m_pc+1))) & 0xFFFF); break;
         case AM_RES  : break;
     } // switch (addrModes[inst])
