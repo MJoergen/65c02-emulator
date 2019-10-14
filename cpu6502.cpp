@@ -35,8 +35,15 @@ typedef enum
     I_PLP,
     I_PHA,
     I_RTS,
-    I_PLA
-
+    I_PLA,
+    I_ASLA, 
+    I_ASL, 
+    I_ROL,
+    I_LSR,
+    I_ROR,
+    I_DEC, 
+    I_INC,
+    I_BIT
 } instruction_t;
 
 // List of all the possible addressing modes.
@@ -49,43 +56,62 @@ typedef enum
     AM_REL
 } addrMode_t;
 
+typedef enum
+{
+    ALU_ORA,
+    ALU_AND,
+    ALU_EOR,
+    ALU_ADC,
+    ALU_LDA,
+    ALU_CMP,
+    ALU_SBC,
+    ALU_ASL,
+    ALU_ROL,
+    ALU_LSR,
+    ALU_ROR,
+    ALU_DEC,
+    ALU_INC,
+    ALU_BIT
+} aluMode_t;
+
+
 static const addrMode_t addrModes[256] = 
 {
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x00
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0x00
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x10
-    AM_ABS,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x20
+    AM_ABS,  AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x20
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x30
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, AM_NONE, // 0x40
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_ABS,  AM_NONE, // 0x40
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x50
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x60
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0x60
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x70
     AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0x80
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0x90
     AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xA0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xB0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xC0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0xC0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, // 0xD0
-    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_NONE, AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_NONE, AM_NONE, // 0xE0
+    AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_ZP,   AM_ZP,   AM_NONE,  AM_NONE, AM_IMM,  AM_NONE, AM_NONE, AM_NONE, AM_ABS,  AM_ABS,  AM_NONE, // 0xE0
     AM_REL,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE,  AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE, AM_NONE  // 0xF0
 }; // addrModes
 
 static const instruction_t instructions[256] = 
 {
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES,  I_PHP, I_ORA, I_RES, I_RES, I_RES, I_ORA, I_RES, I_RES, // 0x00
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_ORA, I_ASL, I_RES,  I_PHP, I_ORA, I_ASLA,I_RES, I_RES, I_ORA, I_ASL, I_RES, // 0x00
     I_BPL, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x10
-    I_JSR, I_RES, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES,  I_PLP, I_AND, I_RES, I_RES, I_RES, I_AND, I_RES, I_RES, // 0x20
+    I_JSR, I_RES, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES,  I_PLP, I_AND, I_RES, I_RES, I_BIT, I_AND, I_ROL, I_RES, // 0x20
     I_BMI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x30
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_RES, I_RES,  I_PHA, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_RES, I_RES, // 0x40
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_EOR, I_LSR, I_RES,  I_PHA, I_EOR, I_RES, I_RES, I_JMP, I_EOR, I_LSR, I_RES, // 0x40
     I_BVC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x50
-    I_RTS, I_RES, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_RES, I_RES, // 0x60
+    I_RTS, I_RES, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES,  I_PLA, I_ADC, I_RES, I_RES, I_RES, I_ADC, I_ROR, I_RES, // 0x60
     I_BVS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SEI, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x70
     I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_STA, I_RES, I_RES, // 0x80
     I_BCC, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0x90
     I_RES, I_RES, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES,  I_RES, I_LDA, I_RES, I_RES, I_RES, I_LDA, I_RES, I_RES, // 0xA0
     I_BCS, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLV, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xB0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_RES, I_RES, // 0xC0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES,  I_RES, I_CMP, I_RES, I_RES, I_RES, I_CMP, I_DEC, I_RES, // 0xC0
     I_BNE, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_CLD, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, // 0xD0
-    I_RES, I_RES, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_RES, I_RES, // 0xE0
+    I_RES, I_RES, I_RES, I_RES, I_RES, I_SBC, I_INC, I_RES,  I_RES, I_SBC, I_RES, I_RES, I_RES, I_SBC, I_INC, I_RES, // 0xE0
     I_BEQ, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES,  I_SED, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES, I_RES  // 0xF0
 }; // instructions
 
@@ -105,22 +131,22 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags&
 
     switch (opcode)
     {
-        case 0 : // ORA
+        case ALU_ORA:
             tmp8 = arg1 | arg2;
             flags.sign = (tmp8 >> 7);
             flags.zero = (tmp8 == 0);
             break;
-        case 1 : // AND
+        case ALU_AND:
             tmp8 = arg1 & arg2;
             flags.sign = (tmp8 >> 7);
             flags.zero = (tmp8 == 0);
             break;
-        case 2 : // EOR
+        case ALU_EOR:
             tmp8 = arg1 ^ arg2;
             flags.sign = (tmp8 >> 7);
             flags.zero = (tmp8 == 0);
             break;
-        case 3 : // ADC
+        case ALU_ADC:
             tmp16 = arg1 + arg2 + flags.carry;
             // Set S, Z, C, and V
             flags.carry    = (tmp16 >> 8);
@@ -129,13 +155,13 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags&
             flags.sign  = (tmp8 >> 7);
             flags.zero  = (tmp8 == 0);
             break;
-        case 5 : // LDA
+        case ALU_LDA:
             tmp8 = arg2;
             // Set S and Z
             flags.sign = (tmp8 >> 7);
             flags.zero = (tmp8 == 0);
             break;
-        case 6 : // CMP
+        case ALU_CMP:
             tmp16 = arg1 + ((~arg2) & 0xFF) + 1;
             // Set S, Z, and C
             flags.carry = (tmp16 >> 8);
@@ -143,13 +169,62 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags&
             flags.sign  = (tmp8 >> 7);
             flags.zero  = (tmp8 == 0);
             break;
-        case 7 : // SBC
+        case ALU_SBC:
             tmp16 = arg1 + ~arg2 + flags.carry;
             // Set S, Z, C, and V
             flags.carry    = (tmp16 >> 8);
             flags.overflow = ~((arg1 >> 7) ^ (~arg2 >> 7)) & ((arg1 >> 7) ^ ((tmp16 >> 7) & 1));
             tmp8 = tmp16 & 0xFF;
             flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_ASL:
+            // Set S, Z, and C
+            tmp8 = (arg2 << 1) & 0xFF;
+            flags.carry = (arg2 >> 7);
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_ROL:
+            // Set S, Z, and C
+            tmp8 = ((arg2 << 1) + flags.carry) & 0xFF;
+            flags.carry = (arg2 >> 7);
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_LSR:
+            // Set S, Z, and C
+            tmp8 = (arg2 >> 1) & 0xFF;
+            flags.carry = (arg2 & 1);
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_ROR:
+            // Set S, Z, and C
+            tmp8 = (arg2 >> 1) & 0xFF;
+            if (flags.carry)
+                tmp8 |= 0x80;
+            flags.carry = (arg2 & 1);
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_DEC:
+            // Set S, and Z
+            tmp8 = (arg2 - 1) & 0xFF;
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_INC:
+            // Set S, and Z
+            tmp8 = (arg2 + 1) & 0xFF;
+            flags.sign  = (tmp8 >> 7);
+            flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_BIT:
+            // Set S, Z, and V
+            tmp8 = arg1 & arg2;
+            flags.sign = arg2 >> 7;
+            flags.overflow = (arg2 >> 6) & 1;
             flags.zero  = (tmp8 == 0);
     }
 
@@ -179,14 +254,14 @@ void Cpu6502::singleStep()
     {
         case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
 
-        case I_ORA: m_areg = alu(0, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_AND: m_areg = alu(1, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_EOR: m_areg = alu(2, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_ADC: m_areg = alu(3, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_ORA: m_areg = alu(ALU_ORA, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_AND: m_areg = alu(ALU_AND, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_EOR: m_areg = alu(ALU_EOR, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_ADC: m_areg = alu(ALU_ADC, m_areg, m_memory.read(pArg), m_flags); break;
         case I_STA: m_memory.write(pArg, m_areg); break;
-        case I_LDA: m_areg = alu(5, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_CMP: alu(6, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_SBC: m_areg = alu(7, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_LDA: m_areg = alu(ALU_LDA, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_CMP: alu(ALU_CMP, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_SBC: m_areg = alu(ALU_SBC, m_areg, m_memory.read(pArg), m_flags); break;
 
         case I_CLC: m_flags.carry = 0; break;
         case I_SEC: m_flags.carry = 1; break;
@@ -211,6 +286,15 @@ void Cpu6502::singleStep()
         case I_PHA: m_memory.write(0x0100 | m_sp, m_areg); m_sp -= 1; break;
         case I_RTS: m_sp += 2; m_pc = ((m_memory.read(0x0100 | m_sp) << 8) | m_memory.read(0x0100 | (m_sp - 1))) + 1; break;
         case I_PLA: m_sp += 1; m_areg = m_memory.read(0x0100 | m_sp); break;
+
+        case I_ASLA: m_areg = alu(ALU_ASL, 0, m_areg, m_flags); break;
+        case I_ASL: m_memory.write(pArg, alu(ALU_ASL, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_ROL: m_memory.write(pArg, alu(ALU_ROL, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_LSR: m_memory.write(pArg, alu(ALU_LSR, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_ROR: m_memory.write(pArg, alu(ALU_ROR, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_DEC: m_memory.write(pArg, alu(ALU_DEC, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_INC: m_memory.write(pArg, alu(ALU_INC, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_BIT: alu(ALU_BIT, m_areg, m_memory.read(pArg), m_flags); break;
 
         case I_JMP: m_pc = pArg; break;
     } // switch (instructions[inst])
@@ -272,6 +356,14 @@ void Cpu6502::disas() const
         case I_PHA: std::cout << "PHA"; break;
         case I_RTS: std::cout << "RTS"; break;
         case I_PLA: std::cout << "PLA"; break;
+        case I_ASL: std::cout << "ASL"; break;
+        case I_ASLA:std::cout << "ASL A"; break;
+        case I_ROL: std::cout << "ROL"; break;
+        case I_LSR: std::cout << "LSR"; break;
+        case I_ROR: std::cout << "ROR"; break;
+        case I_DEC: std::cout << "DEC"; break;
+        case I_INC: std::cout << "INC"; break;
+        case I_BIT: std::cout << "BIT"; break;
     }
     switch (addrModes[inst])
     {
