@@ -200,7 +200,7 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags&
             flags.zero  = (tmp8 == 0);
             break;
         case ALU_SBC:
-            tmp16 = arg1 + ~arg2 + flags.carry;
+            tmp16 = arg1 + ((~arg2) & 0xFF) + flags.carry;
             // Set S, Z, C, and V
             flags.carry    = (tmp16 >> 8);
             flags.overflow = ~((arg1 >> 7) ^ (~arg2 >> 7)) & ((arg1 >> 7) ^ ((tmp16 >> 7) & 1));
