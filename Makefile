@@ -4,7 +4,7 @@ sources += main.cpp
 objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
 CC = gcc
-DEFINES  = -Wall -O3 
+DEFINES  = -Wall -Wextra -O3
 #DEFINES  = -Wall -O3 -g -pg
 #DEFINES += -DNDEBUG
 
