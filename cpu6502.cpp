@@ -124,11 +124,14 @@ static uint16_t sign_extend(uint8_t arg)
 
 void Cpu6502::singleStep()
 {
+    // This is only used to detect jump and branch back to the same
+    // instruction, i.e. infinite loop.
     uint16_t pc_old = m_pc;
+
     uint8_t inst = m_memory.read(m_pc);
     uint16_t pArg = 0;
 
-    m_memory.trace(true);
+    // Get pointer to operand in memory.
     switch (addrModes[inst])
     {
         case AM_IMM  : pArg = m_pc+1; m_pc += 2; break;
@@ -147,6 +150,8 @@ void Cpu6502::singleStep()
         case AM_RES  : std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
     } // switch (addrModes[inst])
 
+    // Execute instruction.
+    m_memory.trace(true);
     switch (instructions[inst])
     {
         case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
@@ -157,25 +162,25 @@ void Cpu6502::singleStep()
         case I_ADC: m_areg = alu(ALU_ADC, m_areg, m_memory.read(pArg), m_flags); break;
         case I_STA: m_memory.write(pArg, m_areg); break;
         case I_LDA: m_areg = alu(ALU_LDA, m_areg, m_memory.read(pArg), m_flags); break;
-        case I_CMP: alu(ALU_CMP, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_CMP:          alu(ALU_CMP, m_areg, m_memory.read(pArg), m_flags); break;
         case I_SBC: m_areg = alu(ALU_SBC, m_areg, m_memory.read(pArg), m_flags); break;
 
-        case I_CLC: m_flags.carry = 0; break;
-        case I_SEC: m_flags.carry = 1; break;
-        case I_CLI: m_flags.intmask = 0; break;
-        case I_SEI: m_flags.intmask = 1; break;
+        case I_CLC: m_flags.carry    = 0; break;
+        case I_SEC: m_flags.carry    = 1; break;
+        case I_CLI: m_flags.intmask  = 0; break;
+        case I_SEI: m_flags.intmask  = 1; break;
         case I_CLV: m_flags.overflow = 0; break;
-        case I_CLD: m_flags.decimal = 0; break;
-        case I_SED: m_flags.decimal = 1; break;
+        case I_CLD: m_flags.decimal  = 0; break;
+        case I_SED: m_flags.decimal  = 1; break;
 
-        case I_BPL: if (m_flags.sign == 0) m_pc = pArg; break;
-        case I_BMI: if (m_flags.sign == 1) m_pc = pArg; break;
+        case I_BPL: if (m_flags.sign     == 0) m_pc = pArg; break;
+        case I_BMI: if (m_flags.sign     == 1) m_pc = pArg; break;
         case I_BVC: if (m_flags.overflow == 0) m_pc = pArg; break;
         case I_BVS: if (m_flags.overflow == 1) m_pc = pArg; break;
-        case I_BCC: if (m_flags.carry == 0) m_pc = pArg; break;
-        case I_BCS: if (m_flags.carry == 1) m_pc = pArg; break;
-        case I_BNE: if (m_flags.zero == 0) m_pc = pArg; break;
-        case I_BEQ: if (m_flags.zero == 1) m_pc = pArg; break;
+        case I_BCC: if (m_flags.carry    == 0) m_pc = pArg; break;
+        case I_BCS: if (m_flags.carry    == 1) m_pc = pArg; break;
+        case I_BNE: if (m_flags.zero     == 0) m_pc = pArg; break;
+        case I_BEQ: if (m_flags.zero     == 1) m_pc = pArg; break;
 
         case I_PHP: m_memory.write(0x0100 | m_sp, 0x30 | *(uint8_t*) &m_flags); m_sp -= 1; break;
         case I_JSR: m_memory.write(0x0100 | m_sp, (m_pc-1) >> 8); m_memory.write(0x0100 | (m_sp-1), (m_pc-1) & 0xFF); m_sp -= 2; m_pc = pArg; break;
@@ -188,17 +193,17 @@ void Cpu6502::singleStep()
         case I_ROLA: m_areg = alu(ALU_ROL, 0, m_areg, m_flags); break;
         case I_LSRA: m_areg = alu(ALU_LSR, 0, m_areg, m_flags); break;
         case I_RORA: m_areg = alu(ALU_ROR, 0, m_areg, m_flags); break;
-        case I_ASL: m_memory.write(pArg, alu(ALU_ASL, m_areg, m_memory.read(pArg), m_flags)); break;
-        case I_ROL: m_memory.write(pArg, alu(ALU_ROL, m_areg, m_memory.read(pArg), m_flags)); break;
-        case I_LSR: m_memory.write(pArg, alu(ALU_LSR, m_areg, m_memory.read(pArg), m_flags)); break;
-        case I_ROR: m_memory.write(pArg, alu(ALU_ROR, m_areg, m_memory.read(pArg), m_flags)); break;
-        case I_DEC: m_memory.write(pArg, alu(ALU_DEC, m_areg, m_memory.read(pArg), m_flags)); break;
-        case I_INC: m_memory.write(pArg, alu(ALU_INC, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_ASL: m_memory.write(pArg, alu(ALU_ASL, 0, m_memory.read(pArg), m_flags)); break;
+        case I_ROL: m_memory.write(pArg, alu(ALU_ROL, 0, m_memory.read(pArg), m_flags)); break;
+        case I_LSR: m_memory.write(pArg, alu(ALU_LSR, 0, m_memory.read(pArg), m_flags)); break;
+        case I_ROR: m_memory.write(pArg, alu(ALU_ROR, 0, m_memory.read(pArg), m_flags)); break;
+        case I_DEC: m_memory.write(pArg, alu(ALU_DEC, 0, m_memory.read(pArg), m_flags)); break;
+        case I_INC: m_memory.write(pArg, alu(ALU_INC, 0, m_memory.read(pArg), m_flags)); break;
         case I_BIT: alu(ALU_BIT, m_areg, m_memory.read(pArg), m_flags); break;
 
         case I_STX: m_memory.write(pArg, m_xreg); break;
         case I_LDX: m_xreg = alu(ALU_LDA, 0, m_memory.read(pArg), m_flags); break;
-        case I_CPX: alu(ALU_CMP, m_xreg, m_memory.read(pArg), m_flags); break;
+        case I_CPX:          alu(ALU_CMP, m_xreg, m_memory.read(pArg), m_flags); break;
         case I_INX: m_xreg = alu(ALU_INC, 0, m_xreg, m_flags); break;
         case I_DEX: m_xreg = alu(ALU_DEC, 0, m_xreg, m_flags); break;
         case I_TAX: m_xreg = alu(ALU_LDA, 0, m_areg, m_flags); break;
@@ -208,7 +213,7 @@ void Cpu6502::singleStep()
 
         case I_STY: m_memory.write(pArg, m_yreg); break;
         case I_LDY: m_yreg = alu(ALU_LDA, 0, m_memory.read(pArg), m_flags); break;
-        case I_CPY: alu(ALU_CMP, m_yreg, m_memory.read(pArg), m_flags); break;
+        case I_CPY:          alu(ALU_CMP, m_yreg, m_memory.read(pArg), m_flags); break;
         case I_INY: m_yreg = alu(ALU_INC, 0, m_yreg, m_flags); break;
         case I_DEY: m_yreg = alu(ALU_DEC, 0, m_yreg, m_flags); break;
         case I_TAY: m_yreg = alu(ALU_LDA, 0, m_areg, m_flags); break;
@@ -293,13 +298,13 @@ void Cpu6502::disas() const
         case I_RTS: std::cout << "RTS"; break;
         case I_PLA: std::cout << "PLA"; break;
         case I_ASL: std::cout << "ASL"; break;
-        case I_ASLA:std::cout << "ASL A"; break;
+        case I_ASLA:std::cout << "ASL"; break;
         case I_ROL: std::cout << "ROL"; break;
-        case I_ROLA:std::cout << "ROL A"; break;
+        case I_ROLA:std::cout << "ROL"; break;
         case I_LSR: std::cout << "LSR"; break;
-        case I_LSRA:std::cout << "LSR A"; break;
+        case I_LSRA:std::cout << "LSR"; break;
         case I_ROR: std::cout << "ROR"; break;
-        case I_RORA:std::cout << "ROR A"; break;
+        case I_RORA:std::cout << "ROR"; break;
         case I_DEC: std::cout << "DEC"; break;
         case I_INC: std::cout << "INC"; break;
         case I_BIT: std::cout << "BIT"; break;

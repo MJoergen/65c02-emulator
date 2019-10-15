@@ -30,6 +30,17 @@ Then you emulate this assembled program by running
 cpu6502
 ```
 
+If the functional test is successfull, it will end after about 5 minutes with
+the following lines:
+```
+PC: efa8  AREG : 2a  XREG : 0e  YREG : ff  SP : ff  FLAGS : .VRB..ZC   a9 : LDA #$f0
+Reading value f0 from address efa9
+PC: efaa  AREG : f0  XREG : 0e  YREG : ff  SP : ff  FLAGS : SVRB...C   8d : STA $0200
+Writing value f0 to address 0200
+PC: efad  AREG : f0  XREG : 0e  YREG : ff  SP : ff  FLAGS : SVRB...C   4c : JMP $efad
+Infinite loop!
+```
+
 ## TODO
 * The ROM contents are taken always from the file rom.bin. This file name
   should instead be a command line parameter.
