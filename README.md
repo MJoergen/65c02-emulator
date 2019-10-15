@@ -1,7 +1,37 @@
 # cpu6502
-This is going to be a very simple 6502 emulator. The aim is only to obey the
-semantics of the instructions. There is no concept of clock cycles, and the
-memory is assumed to be infinitely fast.
+This is a very simple 6502 emulator. The aim is only to obey the semantics of
+the instructions. There is no concept of clock cycles, and the memory is
+assumed to be infinitely fast.
 
-TODO: Almost all instructions are implemented, and there are still
-a few bugs left that are reported by the 6502 functional test suite.
+The CPU is tested using the 6502 functional test suite taken from here:
+[https://github.com/Klaus2m5/6502\_65C02\_functional\_tests](https://github.com/Klaus2m5/6502_65C02_functional_tests).
+
+## Installation
+To compile the emulator, simply type
+```
+make
+```
+
+If you want to write assembly code in 6502, you may want an assembler. I'm
+using the ca65 assembler, taken from the project
+[https://github.com/cc65/cc65](https://github.com/cc65/cc65). On some Linux
+distributions this is already available as a package, so try first
+```
+sudo apt install cc65
+```
+
+## Testing
+To run the 6502 functional test, first assemble the test by running
+```
+make rom.bin
+```
+Then you emulate this assembled program by running
+```
+cpu6502
+```
+
+## TODO
+* The ROM contents are taken always from the file rom.bin. This file name
+  should instead be a command line parameter.
+* Debug and trace are written straight to std::cout. This should instead go to
+  a configurable stream, and with the option to disable it.

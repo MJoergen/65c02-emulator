@@ -32,4 +32,5 @@ clean: Makefile
 	-rm $(depends)
 	-rm rom.o
 	-rm rom.bin
+	-rm a.out
 

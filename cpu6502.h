@@ -13,6 +13,10 @@ class Cpu6502
         void disas() const; // Disassemble the current instruction.
 
         // The Flags register is implemented as a bitfield.
+        // This is not very portable, because the C++ language
+        // does not guarantee a specific ordering of the bits.
+        // But here the intended ordering is that CARRY 
+        // is in bit 0 and SIGN is in bit 7.
         typedef struct {
             uint8_t carry:1;      // C
             uint8_t zero:1;       // Z
