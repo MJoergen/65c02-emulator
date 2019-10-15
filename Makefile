@@ -1,4 +1,5 @@
 sources  = cpu6502.cpp
+sources += decode.cpp
 sources += main.cpp
 objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
@@ -6,6 +7,9 @@ CC = gcc
 DEFINES  = -Wall -O3 
 #DEFINES  = -Wall -O3 -g -pg
 #DEFINES += -DNDEBUG
+
+all: cpu6502 rom.bin
+	echo
 
 cpu6502: $(objects) Makefile
 	$(CC) -o $@ $(DEFINES) $(objects) -lstdc++
