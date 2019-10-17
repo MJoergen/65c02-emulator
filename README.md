@@ -41,6 +41,11 @@ PC: efad  AREG : f0  XREG : 0e  YREG : ff  SP : ff  FLAGS : SVRB...C   4c : JMP 
 Infinite loop!
 ```
 
+## Performance
+On my machine, it can execute approximately 50 million instructions per second.
+Since most instructions take on average around 3 clock cycles, this corresponds
+to an approximate clock frequency of 150 MHz.
+
 ## TODO
 * The ROM contents are taken always from the file rom.bin. This file name
   should instead be a command line parameter.

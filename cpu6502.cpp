@@ -8,6 +8,7 @@ void Cpu6502::reset()
     m_pc = read16(0xFFFC);
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
     std::cout << std::dec << std::endl;
+    m_instCounter = 0;
 } // reset
 
 static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags& flags)
@@ -131,6 +132,8 @@ void Cpu6502::singleStep()
     uint8_t inst = m_memory.read(m_pc);
     uint16_t pArg = 0;
 
+    m_instCounter += 1;
+
     // Get pointer to operand in memory.
     switch (addrModes[inst])
     {
@@ -151,7 +154,7 @@ void Cpu6502::singleStep()
     } // switch (addrModes[inst])
 
     // Execute instruction.
-    m_memory.trace(true);
+//    m_memory.trace(true);
     switch (instructions[inst])
     {
         case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
@@ -234,7 +237,9 @@ void Cpu6502::singleStep()
     m_memory.trace(false);
 
     if (pc_old == m_pc) {
-        std::cerr << "Infinite loop!" << std::endl; exit(-1);
+        std::cerr << "Infinite loop!" << std::endl;
+        std::cerr << std::dec << m_instCounter << " instructions executed" << std::endl;
+        exit(0);
     }
 } // singleStep
 
