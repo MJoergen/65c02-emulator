@@ -16,7 +16,7 @@ int main()
     // The program will terminate, when a JMP or B?? instruction jumps to itself.
     while (true)
     {
-        // cpu6502.show();
+        cpu6502.show();
         cpu6502.singleStep();
     }
 } // main

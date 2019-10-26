@@ -154,7 +154,7 @@ void Cpu6502::singleStep()
     } // switch (addrModes[inst])
 
     // Execute instruction.
-//    m_memory.trace(true);
+    m_memory.trace(true);
     switch (instructions[inst])
     {
         case I_RES: std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
