@@ -37,7 +37,9 @@ class Cpu6502
         uint8_t  m_yreg;
         uint8_t  m_sp;
         t_flags  m_flags;
+        uint32_t m_instCounter;
 
+        // Perform a 16-bit read from memory
         uint16_t read16(uint16_t addr) const {
             return (m_memory.read(addr+1) << 8) | m_memory.read(addr);
         }

@@ -7,7 +7,7 @@ The CPU is tested using the 6502 functional test suite taken from here:
 [https://github.com/Klaus2m5/6502\_65C02\_functional\_tests](https://github.com/Klaus2m5/6502_65C02_functional_tests).
 
 ## Installation
-To compile the emulator, simply type
+To compile the emulator (and the 6502 functional test), simply type
 ```
 make
 ```
@@ -21,17 +21,13 @@ sudo apt install cc65
 ```
 
 ## Testing
-To run the 6502 functional test, first assemble the test by running
+To run the 6502 functional test, run the command
 ```
-make rom.bin
-```
-Then you emulate this assembled program by running
-```
-cpu6502
+cpu6502 > trace.txt
 ```
 
-If the functional test is successfull, it will end after about 5 minutes with
-the following lines:
+If the functional test is successfull, it will end after a few minutes with
+the following lines in the file trace.txt:
 ```
 PC: efa8  AREG : 2a  XREG : 0e  YREG : ff  SP : ff  FLAGS : .VRB..ZC   a9 : LDA #$f0
 Reading value f0 from address efa9
@@ -40,6 +36,13 @@ Writing value f0 to address 0200
 PC: efad  AREG : f0  XREG : 0e  YREG : ff  SP : ff  FLAGS : SVRB...C   4c : JMP $efad
 Infinite loop!
 ```
+
+Note of warning: The file trace.txt generated is approximately 3 GB in size.
+
+## Performance
+On my machine, it can execute approximately 50 million instructions per second.
+Since most instructions take on average around 3 clock cycles, this corresponds
+to an approximate clock frequency of 150 MHz.
 
 ## TODO
 * The ROM contents are taken always from the file rom.bin. This file name
