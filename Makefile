@@ -25,7 +25,8 @@ include $(depends)
 %.o :
 	$(CC) $(DEFINES) $(INCLUDE_DIRS) -c $< -o $@
 
-rom.o: 6502_functional_test.s
+#rom.o: 6502_functional_test.s
+rom.o: 65C02_extended_opcodes_test.s
 	ca65 $< -o $@
 rom.bin: rom.o
 	ld65 -C ld.cfg $<

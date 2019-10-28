@@ -8,8 +8,10 @@ typedef enum
     I_BCC, I_BCS, I_BNE, I_BEQ, I_JMP, I_PHP, I_JSR, I_PLP, I_PHA, I_RTS,
     I_PLA, I_ASLA, I_ROLA, I_LSRA, I_RORA, I_ASL, I_ROL, I_LSR, I_ROR, I_DEC, 
     I_INC, I_BIT, I_STX, I_LDX, I_CPX, I_INX, I_DEX, I_TAX, I_TXA, I_TSX,
-    I_TXS, I_STY, I_LDY, I_CPY, I_INY, I_DEY, I_TAY, I_TYA, I_NOP, I_BRK,
-    I_RES
+    I_TXS, I_STY, I_LDY, I_CPY, I_INY, I_DEY, I_TAY, I_TYA, I_NOP, I_BRK, I_RES,
+
+    // 65C02 instructions start here
+    I_PHX, I_PHY, I_PLX, I_PLY, I_BRA, I_BBR, I_BBS, I_INCA, I_DECA, I_STZ, I_TRB, I_TSB, I_RMB, I_SMB
 } instruction_t;
 
 // List of all the possible addressing modes.
@@ -29,6 +31,11 @@ typedef enum
     AM_INDY,    // Post-indexed indirect
     AM_REL,     // Relative
     AM_RES,
+
+    // 65C02 addressing modes start here.
+    AM_IZP,     // Zero-Page indirect
+    AM_IABSX,   // Indirect absolute indexed with X
+    AM_ZR       // Zero page, relative
 } addrMode_t;
 
 // List of all the possible ALU operations.
@@ -47,7 +54,9 @@ typedef enum
     ALU_ROR,
     ALU_DEC,
     ALU_INC,
-    ALU_BIT
+    ALU_BIT,
+    ALU_TRB,
+    ALU_TSB
 } aluMode_t;
 
 extern const addrMode_t addrModes[256];

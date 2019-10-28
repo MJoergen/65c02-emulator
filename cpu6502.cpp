@@ -113,6 +113,19 @@ static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags&
             flags.sign = arg2 >> 7;
             flags.overflow = (arg2 >> 6) & 1;
             flags.zero  = (tmp8 == 0);
+            break;
+        case ALU_TRB:
+            // Set V
+            tmp8 = arg1 & arg2;
+            flags.zero  = (tmp8 == 0);
+            tmp8 = arg2 & (~arg1);
+            break;
+        case ALU_TSB:
+            // Set V
+            tmp8 = arg1 & arg2;
+            flags.zero  = (tmp8 == 0);
+            tmp8 = arg2 | arg1;
+            break;
     }
 
     return tmp8;
@@ -131,6 +144,8 @@ void Cpu6502::singleStep()
 
     uint8_t inst = m_memory.read(m_pc);
     uint16_t pArg = 0;
+    uint8_t pArgBit = 0;
+    uint8_t pArgZp = 0;
 
     m_instCounter += 1;
 
@@ -151,6 +166,12 @@ void Cpu6502::singleStep()
         case AM_INDY : pArg = read16(m_memory.read(m_pc+1)) + m_yreg; m_pc += 2; break;
         case AM_REL  : pArg = m_pc + sign_extend(m_memory.read(m_pc+1)) + 2; m_pc += 2; break;
         case AM_RES  : std::cerr << "Unimplemented instruction" << std::endl; exit(-1); break;
+
+        case AM_IZP  : pArg = read16(m_memory.read(m_pc+1)); m_pc += 2; break;
+        case AM_IABSX: pArg = read16(read16(m_pc+1) + m_xreg); m_pc += 3; break;
+        case AM_ZR   : pArgBit = (m_memory.read(m_pc) >> 4) & 7;
+                       pArgZp  = m_memory.read(m_pc+1);
+                       pArg = m_pc + sign_extend(m_memory.read(m_pc+2)) + 3; m_pc += 3; break;
     } // switch (addrModes[inst])
 
     // Execute instruction.
@@ -167,6 +188,7 @@ void Cpu6502::singleStep()
         case I_LDA: m_areg = alu(ALU_LDA, m_areg, m_memory.read(pArg), m_flags); break;
         case I_CMP:          alu(ALU_CMP, m_areg, m_memory.read(pArg), m_flags); break;
         case I_SBC: m_areg = alu(ALU_SBC, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_STZ: m_memory.write(pArg, 0); break;
 
         case I_CLC: m_flags.carry    = 0; break;
         case I_SEC: m_flags.carry    = 1; break;
@@ -184,6 +206,14 @@ void Cpu6502::singleStep()
         case I_BCS: if (m_flags.carry    == 1) m_pc = pArg; break;
         case I_BNE: if (m_flags.zero     == 0) m_pc = pArg; break;
         case I_BEQ: if (m_flags.zero     == 1) m_pc = pArg; break;
+        case I_BRA: m_pc = pArg; break;
+
+        case I_BBR: if ((~m_memory.read(pArgZp)) & (1 << pArgBit)) m_pc = pArg; break;
+        case I_BBS: if (  m_memory.read(pArgZp)  & (1 << pArgBit)) m_pc = pArg; break;
+        case I_TRB: m_memory.write(pArg, alu(ALU_TRB, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_TSB: m_memory.write(pArg, alu(ALU_TSB, m_areg, m_memory.read(pArg), m_flags)); break;
+        case I_RMB: m_memory.write(pArg, m_memory.read(pArg) & ~(1 << ((inst >> 4) & 7))); break;
+        case I_SMB: m_memory.write(pArg, m_memory.read(pArg) |  (1 << ((inst >> 4) & 7))); break;
 
         case I_PHP: m_memory.write(0x0100 | m_sp, 0x30 | *(uint8_t*) &m_flags); m_sp -= 1; break;
         case I_JSR: m_memory.write(0x0100 | m_sp, (m_pc-1) >> 8); m_memory.write(0x0100 | (m_sp-1), (m_pc-1) & 0xFF); m_sp -= 2; m_pc = pArg; break;
@@ -192,6 +222,13 @@ void Cpu6502::singleStep()
         case I_RTS: m_sp += 2; m_pc = read16(0x0100 | (m_sp-1)) + 1; break; 
         case I_PLA: m_sp += 1; m_areg = alu(ALU_LDA, m_areg, m_memory.read(0x0100 | m_sp), m_flags); break;
 
+        case I_PHX: m_memory.write(0x0100 | m_sp, m_xreg); m_sp -= 1; break;
+        case I_PLX: m_sp += 1; m_xreg = alu(ALU_LDA, m_xreg, m_memory.read(0x0100 | m_sp), m_flags); break;
+        case I_PHY: m_memory.write(0x0100 | m_sp, m_yreg); m_sp -= 1; break;
+        case I_PLY: m_sp += 1; m_yreg = alu(ALU_LDA, m_yreg, m_memory.read(0x0100 | m_sp), m_flags); break;
+
+        case I_INCA: m_areg = alu(ALU_INC, 0, m_areg, m_flags); break;
+        case I_DECA: m_areg = alu(ALU_DEC, 0, m_areg, m_flags); break;
         case I_ASLA: m_areg = alu(ALU_ASL, 0, m_areg, m_flags); break;
         case I_ROLA: m_areg = alu(ALU_ROL, 0, m_areg, m_flags); break;
         case I_LSRA: m_areg = alu(ALU_LSR, 0, m_areg, m_flags); break;
@@ -202,7 +239,14 @@ void Cpu6502::singleStep()
         case I_ROR: m_memory.write(pArg, alu(ALU_ROR, 0, m_memory.read(pArg), m_flags)); break;
         case I_DEC: m_memory.write(pArg, alu(ALU_DEC, 0, m_memory.read(pArg), m_flags)); break;
         case I_INC: m_memory.write(pArg, alu(ALU_INC, 0, m_memory.read(pArg), m_flags)); break;
-        case I_BIT: alu(ALU_BIT, m_areg, m_memory.read(pArg), m_flags); break;
+        case I_BIT: if ((addrModes[inst]) == AM_IMM) {
+                       t_flags temp_flags;
+                       alu(ALU_BIT, m_areg, m_memory.read(pArg), temp_flags);
+                       m_flags.zero = temp_flags.zero;
+                    }
+                    else
+                       alu(ALU_BIT, m_areg, m_memory.read(pArg), m_flags);
+                    break;
 
         case I_STX: m_memory.write(pArg, m_xreg); break;
         case I_LDX: m_xreg = alu(ALU_LDA, 0, m_memory.read(pArg), m_flags); break;
@@ -226,6 +270,7 @@ void Cpu6502::singleStep()
         case I_BRK: m_memory.write(0x0100 | m_sp, m_pc >> 8); m_memory.write(0x0100 | (m_sp-1), m_pc & 0xFF); m_sp -= 2;
                     m_memory.write(0x0100 | m_sp, 0x30 | *(uint8_t*) &m_flags); m_sp -= 1;
                     m_flags.intmask = 1;
+                    m_flags.decimal = 0;
                     m_pc = read16(0xFFFE);
                     break;
         case I_RTI: m_sp += 1; *(uint8_t*) &m_flags = m_memory.read(0x0100 | m_sp);
@@ -311,7 +356,9 @@ void Cpu6502::disas() const
         case I_ROR: std::cout << "ROR"; break;
         case I_RORA:std::cout << "ROR"; break;
         case I_DEC: std::cout << "DEC"; break;
+        case I_DECA:std::cout << "DEC"; break;
         case I_INC: std::cout << "INC"; break;
+        case I_INCA:std::cout << "INC"; break;
         case I_BIT: std::cout << "BIT"; break;
         case I_STX: std::cout << "STX"; break;
         case I_LDX: std::cout << "LDX"; break;
@@ -332,6 +379,19 @@ void Cpu6502::disas() const
         case I_NOP: std::cout << "NOP"; break;
         case I_BRK: std::cout << "BRK"; break;
         case I_RTI: std::cout << "RTI"; break;
+
+        case I_PHX: std::cout << "PHX"; break;
+        case I_PHY: std::cout << "PHY"; break;
+        case I_PLX: std::cout << "PLX"; break;
+        case I_PLY: std::cout << "PLY"; break;
+        case I_BRA: std::cout << "BRA"; break;
+        case I_BBR: std::cout << "BBR"; break;
+        case I_BBS: std::cout << "BBS"; break;
+        case I_STZ: std::cout << "STZ"; break;
+        case I_TRB: std::cout << "TRB"; break;
+        case I_TSB: std::cout << "TSB"; break;
+        case I_RMB: std::cout << "RMB"; break;
+        case I_SMB: std::cout << "SMB"; break;
     }
     switch (addrModes[inst])
     {
@@ -348,6 +408,12 @@ void Cpu6502::disas() const
         case AM_INDX : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ",X)"; break;
         case AM_INDY : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << "),Y"; break;
         case AM_REL  : std::cout << " $" << std::hex << std::setfill('0') << std::setw(4) << ((m_pc + 2 + sign_extend(m_memory.read(m_pc+1))) & 0xFFFF); break;
+
+        case AM_IZP  : std::cout << " ($" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ")"; break;
+        case AM_IABSX: std::cout << " ($" << std::hex << std::setfill('0') << std::setw(4) << read16(m_pc+1) << ",X)"; break;
+        case AM_ZR   : std::cout << (uint16_t) ((m_memory.read(m_pc) >> 4) & 7);
+                       std::cout << " $" << std::hex << std::setfill('0') << std::setw(2) << (uint16_t) m_memory.read(m_pc+1) << ", ";
+                       std::cout << std::hex << std::setfill('0') << std::setw(4) << ((m_pc + 3 + sign_extend(m_memory.read(m_pc+2))) & 0xFFFF); break;
         case AM_RES  : break;
     } // switch (addrModes[inst])
 
