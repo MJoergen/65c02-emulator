@@ -2,10 +2,10 @@
 
 #include "memory.h"
 
-class Cpu6502
+class Cpu65C02
 {
     public:
-        Cpu6502(Memory& memory) : m_memory(memory) {reset();}
+        Cpu65C02(Memory& memory) : m_memory(memory) {reset();}
 
         void reset();       // Resets the Program Counter.
         void singleStep();  // Executes a single instruction.
@@ -43,5 +43,5 @@ class Cpu6502
         uint16_t read16(uint16_t addr) const {
             return (m_memory.read(addr+1) << 8) | m_memory.read(addr);
         }
-}; // end of class Cpu6502
+}; // end of class Cpu65C02
 

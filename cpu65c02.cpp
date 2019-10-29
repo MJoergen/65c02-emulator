@@ -1,9 +1,9 @@
 #include <iostream>
 #include <iomanip>
-#include "cpu6502.h"
+#include "cpu65c02.h"
 #include "decode.h"
 
-void Cpu6502::reset()
+void Cpu65C02::reset()
 {
     m_pc = read16(0xFFFC);
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
@@ -11,7 +11,7 @@ void Cpu6502::reset()
     m_instCounter = 0;
 } // reset
 
-static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu6502::t_flags& flags)
+static uint8_t alu(uint8_t opcode, uint8_t arg1, uint8_t arg2, Cpu65C02::t_flags& flags)
 {
     uint16_t tmp16;
     uint8_t  tmp8 = arg1;
@@ -136,7 +136,7 @@ static uint16_t sign_extend(uint8_t arg)
     return (arg < 0x80) ? arg : 0xFF00 | arg;
 }
 
-void Cpu6502::singleStep()
+void Cpu65C02::singleStep()
 {
     // This is only used to detect jump and branch back to the same
     // instruction, i.e. infinite loop.
@@ -288,7 +288,7 @@ void Cpu6502::singleStep()
     }
 } // singleStep
 
-void Cpu6502::show() const
+void Cpu65C02::show() const
 {
     std::cout << "PC: " << std::hex << std::setw(4) << m_pc;
     std::cout << "  AREG : " << std::hex << std::setw(2) << (uint16_t) m_areg;
@@ -310,7 +310,7 @@ void Cpu6502::show() const
 } // show
 
 // Disassemble the current instruction.
-void Cpu6502::disas() const
+void Cpu65C02::disas() const
 {
     uint8_t inst = m_memory.read(m_pc);
     std::cout << std::hex << std::setw(2) << std::setfill('0') << (uint16_t) inst << " : ";

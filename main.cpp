@@ -1,6 +1,6 @@
 #include <fstream>
 #include "memory.h"
-#include "cpu6502.h"
+#include "cpu65c02.h"
 
 int main()
 {
@@ -10,14 +10,14 @@ int main()
 
     // Initialize memory and CPU
     Memory mem(initial);
-    Cpu6502 cpu6502(mem);
+    Cpu65C02 cpu65c02(mem);
 
     // Go into an infinite loop.
     // The program will terminate, when a JMP or B?? instruction jumps to itself.
     while (true)
     {
-        cpu6502.show();
-        cpu6502.singleStep();
+        cpu65c02.show();
+        cpu65c02.singleStep();
     }
 } // main
 
