@@ -6,6 +6,7 @@
 void Cpu65C02::reset()
 {
     m_pc = read16(0xFFFC);
+    m_flags.decimal = 0;
     std::cout << "Resetting CPU. PC=" << std::hex << std::setw(4) << m_pc;
     std::cout << std::dec << std::endl;
     m_instCounter = 0;
